@@ -29,7 +29,7 @@
         var chunk;//定义当前在我的浏览器上面我传递了多少页
         upload(file);
         function upload(files){
-            var every_size = 1024;//每页的数据字节
+            var every_size = 1024*1024;//每页的数据字节
             var name = files.name+"_chunk";
             var chunk = window.localStorage.getItem(name) || 1;//当前页
             // console.log(chunk);return;
@@ -66,7 +66,9 @@
                             $('#per').css({width : "100%"});
                             per = per + "%";
                             $("#per_num").text(per);
-
+                            // var img = "<img src='"+res.data.path+"'>";
+                            // $('#show_img').append(img);
+                            // console.log(res.data.path);
                             var video = "<video src='"+res.data.path+"' controls='controls'></video>";
                             $('#show_img').append(video);
                         }else{
