@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./jquery.min.js"></script>
+</head>
+<body>
+    <div id="per_box" style="width: 350px; height: 15px; background-color: #cccccc">
+        <div id="per" style="width: 0%; height: 100%; background-color: #007CD5"></div>
+        <span id="per_num"></span>
+    </div>
+</br>
+    <input type="file" name="file_tage" id="file_tage">
+    <input type="button" value="上传" id="upload_btn">
+    <div id="show_img" style="width:300px;height:300px"></div>
+</body>
+</html>
+<script>
+    $("#upload_btn").click(function(){
+        // alert(1111);return;
+        var file = $("#file_tage")[0].files[0];
+        // console.log(file);
+        if(!file){
+            $('#file_tage').trigger('click');
+        }
+        var chunk;//定义当前在我的浏览器上面我传递了多少页
+        upload(file);
+        function upload(files){
+            var every_size = 1024;//每页的数据字节
+            var name = files.name+"_chunk";
+            var chunk = window.localStorage.getItem(name) || 1;//当前页
+            // console.log(chunk);return;
+            var chunk = parseInt(chunk);
+            // console.log(chunk);return;
+            var chunks = Math.ceil(files.size /every_size);//总页码
+            // console.log(chunks);return;
+            // 获取图片数据
+            var offset = (chunk-1) * every_size;
+            // console.log(offset);
+            var limit = offset > files.size ? files.size : chunk * every_size;
+            // console.log(limit);
+            var data = files.slice(offset,limit);//获取每页字节
+            // console.log(data);
+            var per = (limit/file.size * 100).toFixed(2);
+            // console.log(per);
+            // 将数据发送给后端
+            var form = new FormData();
+            form.append('data',data);
+            form.append('filename',files.name);
+            form.append('filesize',files.size);
+
+            $.ajax({
+                type:"post",
+                dataType:"json",
+                data:form,
+                url:"./files.php",
+                processData:false,
+                contentType: false,
+			    cache:false,
+                success:function(res){
+                    if(res.error == 0){
+                        if(chunk >= chunks){
+                            $('#per').css({width : "100%"});
+                            per = per + "%";
+                            $("#per_num").text(per);
+
+                            var video = "<video src='"+res.data.path+"' controls='controls'></video>";
+                            $('#show_img').append(video);
+                        }else{
+                            chunk++;
+                            window.localStorage.setItem(name,chunk);
+                            per = per + "%";
+                            $('#per').css({width:per});
+                            $('#per_num').text(per);
+                            upload(files);
+                        }
+                    }
+                }
+            })
+
+        }
+    })    
+    
+    
+</script>
